@@ -6,43 +6,48 @@
 //
 import SwiftUI
 
-enum FavoriteCategory: String, CaseIterable, Identifiable {
+enum ContentCategory: String, CaseIterable {
     case cities = "Cities"
     case hobbies = "Hobbies"
     case books = "Books"
-    
-    var id: String {
-        rawValue
-    }
 }
 
 struct HomeView: View {
-    @State private var selectedCategory: FavoriteCategory = .cities
+    
+    @State private var selectedCategory: ContentCategory = .cities
+    @State private var searchText: String = ""
+    @EnvironmentObject private var favorites: FavoritesViewModel
     
     var body: some View {
         NavigationStack {
             VStack {
-                Picker("Category", selection: $selectedCategory) {
-                    ForEach(FavoriteCategory.allCases) { category in
-                        Text(category.rawValue)
-                            .tag(category)
+                Picker("Categories", selection: $selectedCategory) {
+                    ForEach(ContentCategory.allCases, id: \.self) { category in
+                        Text(category.rawValue).tag(category)
                     }
                 }
-                .pickerStyle(.segmented)
+                .pickerStyle(SegmentedPickerStyle())
                 .padding(.horizontal)
-                .padding(.top)
                 
-                switch selectedCategory {
-                case .cities:
-                    CitiesView()
-                case .hobbies:
-                    HobbiesView()
-                case .books:
-                    BooksView()
-                }
+                selectedContentView()
             }
             .navigationTitle("Browse")
             .navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $searchText, prompt: "Search \(selectedCategory.rawValue)")
+            .onChange(of: selectedCategory) {
+                searchText = ""
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func selectedContentView() -> some View {
+        if selectedCategory == .cities {
+            CitiesView(searchText: $searchText)
+        } else if selectedCategory == .hobbies {
+            HobbiesView(searchText: $searchText)
+        } else if selectedCategory == .books {
+            BooksView(searchText: $searchText)
         }
     }
 }

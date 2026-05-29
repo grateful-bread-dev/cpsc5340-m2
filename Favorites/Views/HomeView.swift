@@ -6,69 +6,43 @@
 //
 import SwiftUI
 
-struct HomeView: View {
-    @EnvironmentObject var favoritesViewModel: FavoritesViewModel
+enum FavoriteCategory: String, CaseIterable, Identifiable {
+    case cities = "Cities"
+    case hobbies = "Hobbies"
+    case books = "Books"
+    
+    var id: String {
+        rawValue
+    }
+}
 
+struct HomeView: View {
+    @State private var selectedCategory: FavoriteCategory = .cities
+    
     var body: some View {
         NavigationStack {
-            List {
-                Section("Cities") {
-                    ForEach(favoritesViewModel.cities) { city in
-                        HStack {
-                            Text(city.cityName)
-
-                            Spacer()
-
-                            Button {
-                                favoritesViewModel.toggleFavoriteCity(city: city)
-                            } label: {
-                                Image(systemName: city.isFavorite ? "heart.fill" : "heart")
-                            }
-                        }
+            VStack {
+                Picker("Category", selection: $selectedCategory) {
+                    ForEach(FavoriteCategory.allCases) { category in
+                        Text(category.rawValue)
+                            .tag(category)
                     }
                 }
-
-                Section("Hobbies") {
-                    ForEach(favoritesViewModel.hobbies) { hobby in
-                        HStack {
-                            Image(systemName: hobby.hobbyIcon)
-                            Text(hobby.hobbyName)
-
-                            Spacer()
-
-                            Button {
-                                favoritesViewModel.toggleFavoriteHobby(hobby: hobby)
-                            } label: {
-                                Image(systemName: hobby.isFavorite ? "heart.fill" : "heart")
-                            }
-                        }
-                    }
-                }
-
-                Section("Books") {
-                    ForEach(favoritesViewModel.books) { book in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(book.bookTitle)
-                                    .font(.headline)
-
-                                Text(book.bookAuthor)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            Spacer()
-
-                            Button {
-                                favoritesViewModel.toggleFavoriteBook(book: book)
-                            } label: {
-                                Image(systemName: book.isFavorite ? "heart.fill" : "heart")
-                            }
-                        }
-                    }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.top)
+                
+                switch selectedCategory {
+                case .cities:
+                    CitiesView()
+                case .hobbies:
+                    HobbiesView()
+                case .books:
+                    BooksView()
                 }
             }
-            .navigationTitle("Home")
+            .navigationTitle("Browse")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
